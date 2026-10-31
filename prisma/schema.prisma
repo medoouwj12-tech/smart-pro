@@ -1,0 +1,288 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+enum AttendanceKind {
+  CHECK_IN
+  CHECK_OUT
+}
+enum AttendanceSource {
+  MANUAL
+  QR
+  RFID
+  BIOMETRIC
+  DOOR_DEVICE
+}
+enum RecordStatus {
+  OPEN
+  REVIEWING
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+enum AlertStatus {
+  NEW
+  READ
+  CLOSED
+}
+enum CameraStatus {
+  OFFLINE
+  ONLINE
+}
+enum LeaveStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  timezone    String   @default("Africa/Cairo")
+  settings    Json?
+  createdAt   DateTime @default(now())
+  roles       Role[]
+  users       User[]
+  departments Department[]
+  employees   Employee[]
+  leaveRequests LeaveRequest[]
+  visitors    Visitor[]
+  attendance  AttendanceRecord[]
+  events      SecurityEvent[]
+  violations  Violation[]
+  alerts      Alert[]
+  cameras     Camera[]
+  rules       AIDetectionRule[]
+  shifts      Shift[]
+  auditLogs   AuditLog[]
+}
+
+model Role {
+  id             String       @id @default(cuid())
+  name           String
+  key            String
+  permissions    String[]
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users          User[]
+  @@unique([organizationId, key])
+}
+
+model User {
+  id             String       @id @default(cuid())
+  email          String
+  name           String
+  passwordHash   String
+  status         UserStatus   @default(ACTIVE)
+  organizationId String
+  roleId         String
+  employeeId     String?       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           Role         @relation(fields: [roleId], references: [id])
+  employee       Employee?    @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  auditLogs      AuditLog[]
+  createdAt      DateTime     @default(now())
+  @@unique([organizationId, email])
+  @@index([organizationId, status])
+}
+
+model Department {
+  id             String       @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees      Employee[]
+  @@unique([organizationId, name])
+}
+
+model Shift {
+  id             String       @id @default(cuid())
+  name           String
+  startTime      String
+  endTime        String
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees      Employee[]
+}
+
+model Employee {
+  id             String       @id @default(cuid())
+  employeeNo     String
+  name           String
+  title          String?
+  phone          String?
+  email          String?
+  status         String       @default("ACTIVE")
+  hiredAt        DateTime?
+  managerId      String?
+  organizationId String
+  departmentId   String?
+  shiftId        String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department     Department?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  shift          Shift?       @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  attendance     AttendanceRecord[]
+  leaveRequests  LeaveRequest[]
+  events         SecurityEvent[]
+  violations     Violation[]
+  user           User?
+  @@unique([organizationId, employeeNo])
+  @@index([organizationId, name, status])
+}
+
+model AttendanceRecord {
+  id             String           @id @default(cuid())
+  kind           AttendanceKind
+  source         AttendanceSource @default(MANUAL)
+  occurredAt     DateTime         @default(now())
+  deviceName     String?
+  note           String?
+  organizationId String
+  employeeId     String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee       Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@index([organizationId, occurredAt])
+  @@index([employeeId, occurredAt])
+}
+
+model LeaveRequest {
+  id             String       @id @default(cuid())
+  type           String
+  startsAt       DateTime
+  endsAt         DateTime
+  status         LeaveStatus  @default(REQUESTED)
+  note           String?
+  organizationId String
+  employeeId     String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee       Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@index([organizationId, status, startsAt])
+  @@index([employeeId, startsAt])
+}
+
+model Visitor {
+  id             String       @id @default(cuid())
+  name           String
+  phone          String?
+  identityRef    String?
+  purpose        String
+  hostName       String?
+  departmentName String?
+  checkedInAt    DateTime     @default(now())
+  checkedOutAt   DateTime?
+  passExpiresAt  DateTime?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@index([organizationId, checkedInAt])
+}
+
+model SecurityEvent {
+  id             String       @id @default(cuid())
+  eventNo        String
+  type           String
+  description    String
+  location       String?
+  severity       Severity     @default(MEDIUM)
+  status         RecordStatus @default(OPEN)
+  occurredAt     DateTime     @default(now())
+  actions        String?
+  organizationId String
+  employeeId     String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee       Employee?    @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  @@unique([organizationId, eventNo])
+  @@index([organizationId, status, occurredAt])
+}
+
+model Violation {
+  id             String       @id @default(cuid())
+  type           String
+  description    String
+  location       String?
+  severity       Severity     @default(MEDIUM)
+  status         RecordStatus @default(OPEN)
+  occurredAt     DateTime     @default(now())
+  reviewRequired Boolean      @default(false)
+  organizationId String
+  employeeId     String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee       Employee?    @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  @@index([organizationId, status, occurredAt])
+}
+
+model Alert {
+  id             String       @id @default(cuid())
+  title          String
+  description    String
+  type           String
+  severity       Severity     @default(MEDIUM)
+  status         AlertStatus  @default(NEW)
+  source         String?
+  createdAt      DateTime     @default(now())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@index([organizationId, status, createdAt])
+}
+
+model Camera {
+  id             String       @id @default(cuid())
+  name           String
+  cameraNo       String
+  location       String
+  zone           String?
+  type           String?
+  ipAddress      String?
+  protocol       String?
+  status         CameraStatus @default(OFFLINE)
+  lastSeenAt     DateTime?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, cameraNo])
+}
+
+model AIDetectionRule {
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  zone           String?
+  cameraIds      String[]
+  severity       Severity     @default(MEDIUM)
+  minConfidence  Float        @default(0.8)
+  action         String?
+  enabled        Boolean      @default(false)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  action         String
+  entity         String
+  entityId       String?
+  details        Json?
+  source         String?
+  createdAt      DateTime     @default(now())
+  organizationId String
+  userId         String?
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([organizationId, createdAt])
+}

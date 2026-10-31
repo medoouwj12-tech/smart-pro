@@ -1,0 +1,3 @@
+'use client';
+import {useEffect,useState} from 'react';import {Moon,Sun} from 'lucide-react';
+export default function ThemeToggle(){const [light,setLight]=useState(false);useEffect(()=>{const saved=localStorage.getItem('sg-theme')==='light';setLight(saved);document.documentElement.dataset.theme=saved?'light':'dark'},[]);function toggle(){const next=!light;setLight(next);localStorage.setItem('sg-theme',next?'light':'dark');document.documentElement.dataset.theme=next?'light':'dark'}return <button className="icon-button theme-toggle" onClick={toggle} title={light?'الوضع الداكن':'الوضع الفاتح'} aria-label={light?'الوضع الداكن':'الوضع الفاتح'}>{light?<Moon size={16}/>:<Sun size={16}/>}</button>}

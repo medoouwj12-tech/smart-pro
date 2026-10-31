@@ -1,0 +1,3 @@
+import {redirect,notFound} from 'next/navigation'; import {getActor} from '@/lib/auth'; import Module from '@/components/Module';
+const valid=['employees','attendance','leaves','departments','shifts','visitors','events','violations','alerts','cameras','reports','users','logs','settings','intelligence'];
+export default async function Section({params}:{params:Promise<{section:string}>}){const {section}=await params;if(!valid.includes(section))notFound();const actor=await getActor();if(!actor)redirect('/login');return <Module section={section} role={{key:actor.role.key,permissions:actor.role.permissions}}/>}
