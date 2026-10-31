@@ -12,10 +12,10 @@
 1. انسخ `.env.example` إلى `.env` واضبط `DATABASE_URL` و`DATABASE_URL_UNPOOLED` و`AUTH_SECRET`. مع Neon، استخدم رابط الاتصال المجمّع (pooled، يحتوي المضيف على `-pooler`) في `DATABASE_URL`، والرابط المباشر في `DATABASE_URL_UNPOOLED`. يمكن نسخ الرابطين من لوحة Neon عبر **Connect**.
 2. ثبّت الحزم: `npm install`
 3. أنشئ قاعدة البيانات: `npx prisma migrate dev --name init`
-4. (اختياري) أنشئ حسابًا تجريبيًا: `npm run db:seed`
+4. (اختياري) عيّن `INITIAL_ADMIN_PASSWORD` إلى كلمة مرور فريدة بطول 24 محرفًا على الأقل، ثم أنشئ حساب الإدارة الأول عبر `npm run db:seed`.
 5. شغّل النظام: `npm run dev`
 
-حساب البذرة الاختياري: المؤسسة `smartguard-demo`، البريد `admin@smartguard.local`، كلمة المرور `ChangeMe123!`. غيّر كلمة المرور قبل أي استخدام منشور.
+حساب الإدارة الأول: المؤسسة `smartguard-demo`، البريد `admin@smartguard.local`، وكلمة المرور التي عيّنتها في `INITIAL_ADMIN_PASSWORD`. لا تستخدم كلمة مرور افتراضية مشتركة في Production.
 
 ## الإنتاج
 
