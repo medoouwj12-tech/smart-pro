@@ -9,7 +9,7 @@
 
 ## التشغيل المحلي
 
-1. انسخ `.env.example` إلى `.env` واضبط `DATABASE_URL` و`DIRECT_URL` و`AUTH_SECRET`. مع Neon، استخدم رابط الاتصال المجمّع (pooled، يحتوي المضيف على `-pooler`) في `DATABASE_URL`، والرابط المباشر في `DIRECT_URL`. يمكن نسخ الرابطين من لوحة Neon عبر **Connect**.
+1. انسخ `.env.example` إلى `.env` واضبط `DATABASE_URL` و`DATABASE_URL_UNPOOLED` و`AUTH_SECRET`. مع Neon، استخدم رابط الاتصال المجمّع (pooled، يحتوي المضيف على `-pooler`) في `DATABASE_URL`، والرابط المباشر في `DATABASE_URL_UNPOOLED`. يمكن نسخ الرابطين من لوحة Neon عبر **Connect**.
 2. ثبّت الحزم: `npm install`
 3. أنشئ قاعدة البيانات: `npx prisma migrate dev --name init`
 4. (اختياري) أنشئ حسابًا تجريبيًا: `npm run db:seed`
@@ -21,8 +21,8 @@
 
 ### Vercel + Neon
 
-1. في Neon أنشئ مشروع PostgreSQL، ثم من **Connect** اختر قاعدة البيانات والفرع. انسخ رابط pooled إلى `DATABASE_URL` والرابط المباشر إلى `DIRECT_URL`.
-2. في Vercel > Project > Settings > Environment Variables أضف `DATABASE_URL`, `DIRECT_URL`, و`AUTH_SECRET` لكل بيئة مطلوبة (Production وPreview وDevelopment). أنشئ فرع Neon منفصلًا لـPreview حتى لا تختلط بيانات المعاينة والإنتاج.
+1. اربط Neon من Vercel Marketplace؛ التكامل يضيف `DATABASE_URL` (pooled) و`DATABASE_URL_UNPOOLED` (direct) تلقائيًا.
+2. في Vercel > Project > Settings > Environment Variables أضف `AUTH_SECRET` لكل بيئة مطلوبة (Production وPreview وDevelopment). أنشئ فرع Neon منفصلًا لـPreview حتى لا تختلط بيانات المعاينة والإنتاج.
 3. في Vercel > Project > Settings > Build and Development Settings اضبط **Build Command** على `npm run vercel-build`. هذا يشغّل `prisma migrate deploy` ثم يبني Next.js. بعد حفظ المتغيرات أعد النشر.
 4. لا تشغّل `prisma db push` في النشر؛ ملفات `prisma/migrations` هي مصدر تغييرات المخطط. لا تستخدم قاعدة الإنتاج لمتغيرات Preview.
 
