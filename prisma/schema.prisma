@@ -249,8 +249,14 @@ model Camera {
   location       String
   zone           String?
   type           String?
+  manufacturer   String?
+  model          String?
   ipAddress      String?
+  port           Int?
   protocol       String?
+  username       String?
+  streamPath     String?
+  passwordEncrypted String?
   status         CameraStatus @default(OFFLINE)
   lastSeenAt     DateTime?
   organizationId String
@@ -262,6 +268,7 @@ model AIDetectionRule {
   id             String       @id @default(cuid())
   name           String
   description    String?
+  detectionType  String       @default("CUSTOM")
   zone           String?
   cameraIds      String[]
   severity       Severity     @default(MEDIUM)

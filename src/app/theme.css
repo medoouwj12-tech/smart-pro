@@ -62,3 +62,7 @@ html[data-theme='light'] .profile-facts>div b{color:#2a435d}html[data-theme='lig
 .report-actions button:disabled{opacity:.55;cursor:wait}
 .report-error{display:block;color:#ff899a;font-size:9px;margin-top:9px}
 html[data-theme='light'] .report-actions button{color:#147f97;background:rgba(81,158,193,.08)}
+.form-grid select[multiple]{min-height:112px;padding:7px}
+.form-grid select[multiple] option{padding:6px;border-radius:5px}
+.field-hint{display:flex;align-items:center;gap:6px;margin-top:5px;color:var(--muted);font-size:10px}
+.field-hint input[type='checkbox']{width:14px;height:14px;margin:0}
